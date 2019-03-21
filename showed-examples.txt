@@ -1,0 +1,45 @@
+-- open project in code
+-- show docker integration in vscode
+dotnet build ./src
+dotnet publish ./src/AcademyDocker.Api/ -c Release -o ./bin/build
+
+-- show images -> no images there
+docker images
+
+-- build docker image
+docker build . -t academydocker:v1
+
+-- show new created image
+docker images
+
+-- show no running container
+docker ps
+
+-- run docker container (-it means interactive – you are linked to the container, get output)
+docker run -it -p 5000:80 academydocker:v1
+
+-- show running container
+docker ps
+
+-- show difference between container and image!
+-- show it on http://localhost:5000/api-docs -> browser
+
+-- login to artifactory
+docker login {yourregistryurl} 
+
+-- tag image for uploading
+docker tag academydocker:v1 {yourregistryurl}/academydocker:v1
+
+-- upload image
+docker push {yourregistryurl}/academydocker:v1
+
+-- delete all images
+docker system prune -a
+
+-- get back the image
+docker pull {yourregistryurl}/academydocker:v1
+
+-- run multiple instances (--rm -d means that container runs detached and will be removed when stopped!)
+docker run --rm -d -p 5000:80/tcp {yourregistryurl}/academydocker:v1
+docker run --rm -d -p 5001:80/tcp {yourregistryurl}/academydocker:v1
+

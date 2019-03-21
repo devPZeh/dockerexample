@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.msbuild" Version="2.3.1">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="FakeItEasy" Version="4.9.1" />
+    <PackageReference Include="FluentAssertions" Version="5.4.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.3.2" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.3.2" />
+    <PackageReference Include="RichardSzalay.MockHttp" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AcademyDocker.Adapter\AcademyDocker.Adapter.csproj" />
+    <ProjectReference Include="..\AcademyDocker.Api\AcademyDocker.Api.csproj" />
+    <ProjectReference Include="..\AcademyDocker.Business\AcademyDocker.Business.csproj" />
+    <ProjectReference Include="..\AcademyDocker.DataContract\AcademyDocker.DataContract.csproj" />
+    <ProjectReference Include="..\AcademyDocker.Repository\AcademyDocker.Repository.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="AdapterTests\" />
+    <Folder Include="BusinessTests\" />
+    <Folder Include="Fakes\" />
+  </ItemGroup>
+
+  
+</Project>

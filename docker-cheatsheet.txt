@@ -1,0 +1,137 @@
+## https://docs.docker.com/get-started/
+
+## List Docker CLI commands
+docker
+docker container --help
+
+## Display Docker version and info
+docker --version
+docker version
+docker info
+
+## Execute Docker image
+docker run hello-world
+
+## List Docker images
+docker image ls
+
+## List Docker containers (running, all, all in quiet mode)
+docker container ls
+docker container ls --all
+docker container ls -aq
+
+## Build docker image based on an existing Dockerfile: 
+## https://docs.docker.com/get-started/part2/ 
+## Dockerfile reference
+#  A Dockerfile is required when you plan to build a docker image. 
+#  Please read from https://docs.docker.com/engine/reference/builder/#from
+#  The information before FROM declaration is a little confusing. 
+#  Please read following later, when you know a little more about Dockerfile: https://docs.docker.com/engine/reference/builder/
+  
+docker build -t friendlyhello .  					# Create image using the Dockerfile which resides in the current directory
+
+docker run -p 4000:80 friendlyhello  				# Run "friendlyname" mapping port 4000 to 80
+docker run -d -p 4000:80 friendlyhello  			# Same thing, but in detached mode
+
+docker ps 											# Lists all running containers 
+docker ps -a 										# Lists all containers 
+
+docker container ls                     			# List all running containers
+docker container ls -a             					# List all containers, even those not running
+docker container stop <hash>           				# Gracefully stop the specified container
+docker container kill <hash>         				# Force shutdown of the specified container
+docker container rm <hash>        					# Remove specified container from this machine
+docker container rm $(docker container ls -a -q)    # Remove all containers
+
+docker image ls -a                             		# List all images on this machine
+docker image rm <image id>            				# Remove specified image from this machine
+docker image rm $(docker image ls -a -q)   			# Remove all images from this machine
+
+## Move image to repository in <username> account
+docker login             							# Log in this CLI session using your Docker credentials
+docker tag <image> username/repository:tag  		# Tag <image> for upload to registry
+docker push username/repository:tag            		# Upload tagged image to registry
+docker run username/repository:tag                  # Run image from a registry
+
+## Manage swarm (with docker-compose and docker-compose.yml): https://docs.docker.com/get-started/part3/
+# Needs a docker-compose.yml:
+version: "3"
+services:
+  web:
+    # replace username/repo:tag with your name and image details
+    image: username/repo:tag
+    deploy:
+      replicas: 5
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 50M
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "4000:80"
+    networks:
+      - webnet
+networks:
+  webnet:
+# commands  
+docker swarm init									# Initialize the swarm
+docker stack ls                                     # List stacks or apps
+docker stack deploy -c <composefile> <appname>  	# Run the specified Compose file
+docker service ls                 					# List running services associated with an app
+docker service ps <service>                  		# List tasks associated with an app
+docker inspect <task or container>                  # Inspect task or container
+docker container ls -q                              # List container IDs
+docker stack rm <appname>                           # Tear down an application
+docker swarm leave --force      					# Take down a single node swarm from the manager
+
+## Setting up virtual machines and running docker swarm on them (Win10): https://docs.docker.com/get-started/part4/
+#    1. Launch Hyper-V Manager
+#    2. Click Virtual Switch Manager in the right-hand menu
+#    3. Click Create Virtual Switch of type External
+#    4. Give it the name <switchname>, and check the box to share your host machine’s active network adapter
+docker-machine create --driver virtualbox myvm1 							# Create a VM (Mac, Win7, Linux)
+docker-machine create -d hyperv --hyperv-virtual-switch "myswitch" myvm1 	# Win10
+docker-machine env myvm1                									# View basic information about your node
+docker-machine ssh myvm1 "docker node ls"         							# List the nodes in your swarm
+docker-machine ssh myvm1 "docker node inspect <node ID>"        			# Inspect a node
+docker-machine ssh myvm1 "docker swarm join-token -q worker"   				# View join token
+docker-machine ssh myvm1   													# Open an SSH session with the VM; type "exit" to end
+docker node ls                												# View nodes in swarm (while logged on to manager)
+docker-machine ssh myvm2 "docker swarm leave"  								# Make the worker leave the swarm
+docker-machine ssh myvm1 "docker swarm leave -f" 							# Make master leave, kill swarm
+docker-machine ls 															# list VMs, asterisk shows which VM this shell is talking to
+docker-machine start myvm1            										# Start a VM that is currently not running
+docker-machine env myvm1      												# show environment variables and command for myvm1
+"%PROGRAMFILES%\Docker\Docker\Resources\bin\docker-machine.exe" env myvm1 | Invoke-Expression   
+																			# Windows command to connect shell to myvm1
+docker stack deploy -c <file> <app>  										# Deploy an app; command shell must be set to talk to manager (myvm1), uses local Compose file
+docker-machine scp docker-compose.yml myvm1:~ 								# Copy file to node's home dir (only required if you use ssh to connect to manager and deploy the app)
+docker-machine ssh myvm1 "docker stack deploy -c <file> <app>"   			# Deploy an app using ssh (you must have first copied the Compose file to myvm1)
+"%PROGRAMFILES%\Docker\Docker\Resources\bin\docker-machine.exe" env -u | Invoke-Expression
+																			# Disconnect shell from VMs, use native docker
+docker-machine stop $(docker-machine ls -q)               					# Stop all running VMs
+docker-machine rm $(docker-machine ls -q) 									# Delete all VMs and their disk images
+
+docker-machine ip <imagename>												# Getting the ip for a virtual machine/container with name imagename
+
+## Creating a network for container https://docs.docker.com/network/
+# You have to do a "docker swarm init" before.
+docker network create --driver overlay <mynetworkname>		# creates a new network with default driver "overlay" 
+															#(there are other drivers, see doc at location above, swarm: on master only) 
+															# next command creates a service with 5 replicas
+docker service create --name <myNewSvc> --publish target=80,published=80 --replicas=5 --network <mynetworkname> <MyNewSvcSwarmName> 
+
+docker network create -d overlay <mynetworkname2>			# creates a new network and assigns it to an existing service
+docker service update --network-add <mynetworkname2> --network-rm <mynetworkname> <myNewSvc> # uses the service name (see above)
+
+docker service inspect <myNewSvc>							# prints out state and information for the swarm
+
+docker service rm <myNewSvc>								# Clean up: First shut down and remove the service (all replicas),
+docker network rm <mynetworkname> <mynetworkname2>		    # then remove all networks 
+
+## Learn about stacks: https://docs.docker.com/get-started/part5/
+
+## Deploy the app to the cloud: https://docs.docker.com/get-started/part6/ 
+
+## GO and docker howto: https://medium.com/@chemidy/create-the-smallest-and-secured-golang-docker-image-based-on-scratch-4752223b7324
